@@ -292,8 +292,6 @@ float Avarage(){
       lcd.setCursor(0,1);
       lcd.print("o");
     }
-//      result=result+readbigRegister(DtRg);  //get the AD value as 16 or 24bit
-//      lcd.print(".");
   }
   for(byte k=CollectNo;k<(TryNo-CollectNo);k++){
     result=result+PrimNo[k+1];
@@ -329,4 +327,4 @@ void loop() {
     lcd.print("push button");
   }
 }
-
+//commit test
