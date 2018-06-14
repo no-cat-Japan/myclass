@@ -36,6 +36,7 @@ Arduino Digital SCL <-----> 1602 I2C PIN 4 (SCL)
 
 // SPI library
 #include <SPI.h>
+#include "AD7714_arduinoUNO.h"
 #include <LiquidCrystal_I2C.h>
 LiquidCrystal_I2C lcd(0x27,16,2); // set the LCD address to 0x27 for a 16 chars and 2 line display
 
@@ -107,6 +108,8 @@ float RefV=0.0;  //Reference Voltage
 unsigned long DatV=0;
 float ResultV=0.0;
 
+AD7714_UNO AD7714;
+
 void setup() {
 //program parameter
   ADpolar=Bip;  //bipolar mode(Bip) or unipolar mode(Unip)
@@ -174,45 +177,39 @@ void setup() {
       filtFL=filtFL|(B00000001<<(7-i));
     }
   }
-                            ResetRoutine();
+                          AD7714.ResetRoutine();
                             InitRoutine();
   lcd.setCursor(0,0);
   lcd.print("push button");
 }
 
-void ResetRoutine(){
-  digitalWrite(RESET, LOW);
-  delay(100);
-  digitalWrite(RESET, HIGH);
-  digitalWrite(CS, LOW);
-}
 
 void InitRoutine(){
-  writeByteRegister(FHRg, FHhi|filtFH);  //set the filterHigh registar
-  writeByteRegister(FLRg, filtFL);  //set the filterLow registar
+  AD7714.writeByteRegister(FHRg, FHhi|filtFH, ain);  //set the filterHigh registar
+  AD7714.writeByteRegister(FLRg, filtFL, ain);  //set the filterLow registar
 
-  writeByteRegister(MoRg, (SlfCali<<5)|(Gain1<<2));  //Self Calibration
+  AD7714.writeByteRegister(MoRg, (SlfCali<<5)|(Gain1<<2), ain);  //Self Calibration
   while(digitalRead(dataReady)); //
 }
 
-byte writeByteRegister( byte reg, byte value){ // only valid for 8 bit registers 0:Communication reg, 1:Mode reg, 2:Filter high, 3:Filter low, 4:Test reg
-  byte result = 0;
-  if (reg<5) { // byte registers
-    byte cmd = 0; // a place to build the correct comm reg value.
-    cmd = (reg<< 4); // set the correct RS2..RS0 bits of COMM register. Shift 4-7bit to 0-3bit.
-    if(reg==0) { // update global ain Value
-      ain = value &7;  //mask for the channel select(CH0-CH8..refer to top of this code)
-    }
-    cmd = cmd | ain; // keep the analog mux what it was previously configured as.
-    byte stat = SPI.transfer(cmd); // actually send the cmd and read the current status
-    if(reg!=0){ // actually send the value to reg
-      byte unk = SPI.transfer(value);
-//      if(reg==2) bits24=(value &0x40)==0x40; // if configured for 24bit data register
-    }
-    result = stat; // return value received, drdy is bit 7.
-  }
-  return result;
-}
+//byte writeByteRegister( byte reg, byte value){ // only valid for 8 bit registers 0:Communication reg, 1:Mode reg, 2:Filter high, 3:Filter low, 4:Test reg
+//  byte result = 0;
+//  if (reg<5) { // byte registers
+//    byte cmd = 0; // a place to build the correct comm reg value.
+//    cmd = (reg<< 4); // set the correct RS2..RS0 bits of COMM register. Shift 4-7bit to 0-3bit.
+//    if(reg==0) { // update global ain Value
+//      ain = value &7;  //mask for the channel select(CH0-CH8..refer to top of this code)
+//    }
+//    cmd = cmd | ain; // keep the analog mux what it was previously configured as.
+//    byte stat = SPI.transfer(cmd); // actually send the cmd and read the current status
+//    if(reg!=0){ // actually send the value to reg
+//      byte unk = SPI.transfer(value);
+////      if(reg==2) bits24=(value &0x40)==0x40; // if configured for 24bit data register
+//    }
+//    result = stat; // return value received, drdy is bit 7.
+//  }
+//  return result;
+//}
 
 unsigned long readbigRegister( byte reg){ // only valid for 16,24 bit registers 5..7
   unsigned long result = 0;
