@@ -1,4 +1,4 @@
-/* Hardware Connections AD7714<--> Arduino UNO , AD780 test
+/* Hardware Connections AD7714<--> Arduino UNO , AD780 test test
 AD7714 PIN1 (SCLK) <----> Arduino UNO 13(D13)
 AD7714 PIN2 (MCLK_IN) <---
                          |
